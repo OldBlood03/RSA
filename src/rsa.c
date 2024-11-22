@@ -92,49 +92,103 @@ unsigned short find_a_prime (unsigned short min, unsigned short max){
   return candidate;
 }
 
-unsigned long gcd (unsigned long a, unsigned long b){
-  unsigned long bigger = MAX(a,b);
-  unsigned long smaller = MIN(a,b);
+static void swap_unsigned (unsigned long * a, unsigned long * b){
+  unsigned long temp = *b;
+  *b = *a;
+  *a = temp;
 
-  unsigned bigpad = trailing_zeros(bigger);
-  unsigned smallpad = trailing_zeros(smaller);
-
-  unsigned k = MIN(bigpad, smallpad);
-  long long c = 0;
-  long long d = 1;
-
-  bigger >>= bigpad;
-  smaller >>= smallpad;
-
-  do{
-    if (bigger < smaller){ 
-      unsigned long temp = bigger;
-      bigger = smaller;
-      smaller = temp; 
-      long long tempc = c;
-      c = d - (bigger / smaller) * c;
-      d = tempc;
-    }
-
-    bigger = bigger - smaller;
-    bigpad = trailing_zeros(bigger);
-    bigger >>= bigpad;
-  }
-  while (bigger > 0);
-
-  return smaller << k;
 }
 
-encryption RSAencrypt (unsigned long message, unsigned long e){
+static void swap_signed (long long * a, long long * b){
+  unsigned long temp = *b;
+  *b = *a;
+  *a = temp;
+}
+
+bezout gcd (unsigned long a, unsigned long b){
+  if (a == 0){
+    bezout result = {.gcd = b, .x = 0, .y = !!b};
+    return result; 
+  }
+  if (b == 0){
+    bezout result = {.gcd = a, .x = 1, .y = 0};
+    return result; 
+  }
+
+  int swapped = 0;
+  if (a > b) {
+    swapped = 1;
+    swap_unsigned(&a,&b);
+  }
+
+  unsigned r = trailing_zeros(a | b);
+  a >>= r;
+  b >>= r;
+
+  long long x = (long long)a;
+  long long y = (long long)b;
+  long long s = 1;
+  long long t = 0;
+  long long u = 0;
+  long long v = 1;
+
+  while (x) {
+    while ((x & 1) == 0) { // a is even
+      x /= 2;
+      if (((s | t) & 1) == 0) {
+        s /= 2;
+        t /= 2;
+      } else {
+        s = s + (long long)b;
+        t = t - (long long)a;
+      }
+    }
+    while ((y & 1) == 0) { // b is even
+      y /= 2;
+      if (((u | v) & 1) == 0) {
+        u /= 2;
+        v /= 2;
+      } else {
+        u = (u + (long long)b)/2;
+        v = (v - (long long)a)/2;
+      }
+    }
+    if (x >= y) {
+      x -= y;
+      s -= u;
+      t -= v;
+    } else {
+      y -= x;
+      u -= s;
+      v -= t;
+    }
+  }
+
+  if (swapped) {
+    swap_unsigned(&a,&b);
+    swap_signed(&u,&v);
+    swap_signed(&s, &t);
+  }
+  bezout result = {.gcd = (unsigned long)y << r, .x = (long long)u, .y = (long long)v};
+  return result; 
+}
+
+encryption RSAencrypt (unsigned long message){
   unsigned short p = find_a_prime(USHORT_MAX/2,USHORT_MAX);
   unsigned short q = find_a_prime(USHORT_MAX/2,USHORT_MAX);
 
   unsigned long n = p*q;
   unsigned long phi = (p-1)*(q-1);
+  unsigned long e = 3;
 
-  assert (phi % e == 0 && "e does not divide phi");
+  bezout ed = gcd(e, phi);
+  while (ed.gcd != 1){
+    e += 2;
+    ed = gcd(e, phi);
+  }
 
-  unsigned long d = phi/e;
+  unsigned long d = ed.x;
+  assert(d*e % phi == 1 && "d is not the modular inverse of e");
   unsigned long encrypted_msg = exponentiate(message, e, n);
   encryption encryption_bundle = {.e = e, .n = n, .d = d, .msg = encrypted_msg};
   return encryption_bundle;

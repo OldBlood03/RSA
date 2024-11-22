@@ -13,10 +13,16 @@ typedef struct encryption{
   unsigned long msg;
 } encryption;
 
+typedef struct bezout{
+  unsigned long gcd;
+  long long x;
+  long long y;
+} bezout;
+
 unsigned leading_zeros(unsigned long value);
 int fermat_check (unsigned long p, unsigned long a);
 int isPrime (unsigned long p);
 unsigned short find_a_prime (unsigned short min, unsigned short max);
-encryption RSAencrypt (unsigned long message, unsigned long e);
+encryption RSAencrypt (unsigned long message);
 unsigned long exponentiate (unsigned long base, unsigned long power, unsigned long mod);
-unsigned long gcd (unsigned long a, unsigned long b);
+bezout gcd (unsigned long a, unsigned long b);

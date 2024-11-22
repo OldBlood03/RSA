@@ -3,7 +3,9 @@
 #include "rsa.h"
 
 int main (int argc, char *argv[]){
-  unsigned long divisor = gcd(18, 22);
-  printf("gcd: %lu", divisor);
+  encryption encryption = RSAencrypt(404);
+  printf("encrypted message: %lu \ne: %lu \nn: %lu \nd: %lu\n",
+      encryption.msg, encryption.e, encryption.n, encryption.d);
+  printf("decrypted message: %lu", exponentiate(encryption.msg, encryption.d, encryption.n));
   return 0;
 }
