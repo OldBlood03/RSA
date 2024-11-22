@@ -1,28 +1,30 @@
+#ifndef RSA
+#define RSA
 #include<stdio.h>
 #include<assert.h>
 #include<stdlib.h>
+#include<stdint.h>
 #include<math.h>
 #define USHORT_MAX 0xFFFFUL
-#define MAX(a,b) (a) > (b) ? (a) : (b)
-#define MIN(a,b) (a) < (b) ? (a) : (b)
 
 typedef struct encryption{
-  unsigned long n;
-  unsigned long e;
-  unsigned long d;
-  unsigned long msg;
+  uint32_t n;
+  uint32_t e;
+  uint32_t d;
+  uint32_t msg;
 } encryption;
 
 typedef struct bezout{
-  unsigned long gcd;
-  long long x;
-  long long y;
+  uint32_t gcd;
+  int64_t x;
+  int64_t y;
 } bezout;
 
-unsigned leading_zeros(unsigned long value);
-int fermat_check (unsigned long p, unsigned long a);
-int isPrime (unsigned long p);
-unsigned short find_a_prime (unsigned short min, unsigned short max);
-encryption RSAencrypt (unsigned long message);
-unsigned long exponentiate (unsigned long base, unsigned long power, unsigned long mod);
-bezout gcd (unsigned long a, unsigned long b);
+uint32_t leading_zeros(uint32_t value);
+int fermat_check (uint32_t p, uint32_t a);
+int isPrime (uint32_t p);
+uint16_t find_a_prime (uint16_t min, uint16_t max);
+encryption RSAencrypt (uint32_t message);
+uint32_t exponentiate (uint32_t base, uint32_t power, uint32_t mod);
+bezout gcd (uint32_t a, uint32_t b);
+#endif
